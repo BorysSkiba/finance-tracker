@@ -1,24 +1,11 @@
 import datetime
-import json
-from json import JSONDecodeError
-
-transactions = {}
-
-def load_transactions():
-    global transactions
-
-    try:
-        with open("transactions.json", "r") as f:
-            transactions = json.load(f)
-            print("Successfully loaded transactions.")
-    except JSONDecodeError:
-        print("No saved transactions found.")
-    except FileNotFoundError:
-        print("No transactions found. Creating new transactions file.")
+import database
 
 
 def add_transaction():
-    transaction = {"Name": input("Enter your transaction name: "), "Amount": 0.0, "Type": "", "Date": ""}
+    transaction = {"Name": "", "Amount": 0.0, "Type": "", "Date": ""}
+
+    transaction["Name"] = get_transaction_name()
 
     transaction["Type"] = get_transaction_type()
 
@@ -26,55 +13,60 @@ def add_transaction():
 
     transaction["Date"] = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S.%f")
 
-    tid = ""
-    for char in transaction["Date"]:
-        if char.isdigit():
-            tid += char
-
-    transactions["t" + tid] = transaction
-
-    save_transactions(transactions)
-
-
-def save_transactions(data):
-    with open("transactions.json", "w") as f:
-        json.dump(data, f, indent=4)
+    database.insert_transaction((transaction["Name"], transaction["Amount"], transaction["Type"], transaction["Date"]))
 
 
 def edit_transaction():
     while True:
         tid = input("Give an id of the transaction to edit ([c] to cancel): ").strip().lower()
-        if tid in transactions:
-            edited = False
 
-            while not edited:
-                transaction = transactions[tid]
+        if tid == "c":
+            print("Editing cancelled.")
+            return
+
+        transaction = database.get_transaction_by_id(tid)
+
+        if transaction:
+            edited_field = ""
+            edited_value = ""
+
+            while True:
                 print("Editing: " + tid)
                 edit_choice = input("Select the attribute to edit ([n]ame/[t]ype/[a]mount/[c]ancel): ").strip().lower()
 
                 if edit_choice == "n":
-                    new_value = input("Enter new value for name: ")
-                    transaction["Name"] = new_value
-                    edited = True
+                    edited_value = get_transaction_name()
+                    edited_field = "name"
+                    break
                 elif edit_choice == "t":
-                    transaction["Type"] = get_transaction_type()
-                    edited = True
+                    edited_value = get_transaction_type()
+                    edited_field = "type"
+                    break
                 elif edit_choice == "a":
-                    transaction["Amount"] = get_transaction_amount()
-                    edited = True
+                    edited_value = get_transaction_amount()
+                    edited_field = "amount"
+                    break
                 elif edit_choice == "c":
                     print("Editing cancelled.")
                     return
                 else:
                     print("Invalid input. Please enter a valid choice.")
+
+            database.update_transaction(edited_field, edited_value, tid)
+
             print("Successfully edited: " + tid)
-            save_transactions(transactions)
             break
-        elif tid == "c":
-            print("Editing cancelled.")
-            return
         else:
             print("Transaction not found.")
+
+
+def get_transaction_name():
+    while True:
+        name = input("Enter your transaction name: ").strip()
+        if name:
+            return name
+        else:
+            print("The name cannot be empty.")
 
 
 def get_transaction_type():
@@ -103,28 +95,41 @@ def get_transaction_amount():
 def delete_transaction():
     while True:
         tid = input("Give an id of the transaction to delete ([c] to cancel): ").strip().lower()
-        if tid in transactions:
+
+        if tid == "c":
+            print("Deleting cancelled.")
+            return
+
+        transaction = database.get_transaction_by_id(tid)
+
+        if transaction:
             while True:
+                print(f"Selected transaction: ID: {transaction[0]},\n"
+                      f"Name: {transaction[1]},\n"
+                      f"Type: {transaction[3]},\n"
+                      f"Amount: {transaction[2]:.2f} PLN,\n"
+                      f"Date: {transaction[4][:17]}")
+
                 confirm = input("Are you sure you want to delete the transaction [y/n]: ").strip().lower()
                 if confirm == "y":
-                    transactions.pop(tid)
-                    save_transactions(transactions)
+                    database.delete_transaction_from_db(tid)
 
                     print("Transaction successfully deleted.")
 
                     return
                 elif confirm == "n":
+                    print("Deleting cancelled.")
                     return
                 else:
                     print("Invalid input. Please enter a valid choice.")
-        elif tid == "c":
-            return
         else:
             print("Transaction not found.")
 
 
 def show_transactions():
-    if not transactions:
+    rows = database.get_all_transactions()
+
+    if not rows:
         print("No transactions found.")
         return
 
@@ -132,21 +137,21 @@ def show_transactions():
     total_income = 0
     total_expense = 0
 
-    for key, value in transactions.items():
-        print(f"{key}: Name: {value["Name"]}, {value["Type"]}, {value['Amount']:.2f} PLN, {value['Date'][:17]}")
+    for row in rows:
+        print(f"{row[0]}: Name: {row[1]}, {row[3]}, {row[2]:.2f} PLN, {row[4][:17]}")
 
-        if  value["Type"] == "Income":
-            total_balance += value['Amount']
-            total_income += value['Amount']
-        elif value["Type"] == "Expense":
-            total_balance -= value['Amount']
-            total_expense += value['Amount']
+        if  row[3] == "Income":
+            total_balance += row[2]
+            total_income += row[2]
+        elif row[3] == "Expense":
+            total_balance -= row[2]
+            total_expense += row[2]
 
     print(f"\nTotal income: {total_income:.2f} PLN\nTotal expense: {total_expense:.2f} PLN\nTotal balance: {total_balance:.2f} PLN")
 
 
 def main():
-    load_transactions()
+    database.initialize_database()
 
     print("Welcome to the Financial Analysis Tool.")
 
