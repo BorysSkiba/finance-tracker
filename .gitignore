@@ -1,6 +1,6 @@
 .venv/
 .idea/
 __pycache__/
-transactions.json
 *.pyc
 transactions.db
+test_transactions.db

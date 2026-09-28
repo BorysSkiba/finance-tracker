@@ -3,15 +3,8 @@ import database
 
 
 def add_transaction():
-    transaction = {"Name": "", "Amount": 0.0, "Type": "", "Date": ""}
-
-    transaction["Name"] = get_transaction_name()
-
-    transaction["Type"] = get_transaction_type()
-
-    transaction["Amount"] = get_transaction_amount()
-
-    transaction["Date"] = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S.%f")
+    transaction = {"Name": get_transaction_name(), "Amount": get_transaction_amount(), "Type": get_transaction_type(),
+                   "Date": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S.%f")}
 
     database.insert_transaction((transaction["Name"], transaction["Amount"], transaction["Type"], transaction["Date"]))
 
