@@ -33,8 +33,8 @@ def update_transaction(edited_field, edited_value, tid):
     allowed_fields = ["name", "amount", "type"]
 
     if edited_field not in allowed_fields:
-        print("You are not allowed to edit this field.")
-        return
+        if edited_field not in allowed_fields:
+            raise ValueError("You are not allowed to edit this field")
 
     connection = sqlite3.connect(DATABASE_FILE)
     cursor = connection.cursor()

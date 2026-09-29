@@ -24,3 +24,28 @@ def test_insert_transaction(test_database):
     assert rows[0][2] == 100
     assert rows[0][3] == "Income"
     assert rows[0][4] == "28/09/2026"
+
+
+def test_update_transaction(test_database):
+    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026"))
+
+    database.update_transaction("amount", 200, 1)
+
+    result = database.get_transaction_by_id(1)
+
+    assert result[2] == 200
+
+
+def test_delete_transaction_from_db(test_database):
+    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026"))
+
+    database.delete_transaction_from_db(1)
+
+    assert database.get_transaction_by_id(1) is None
+
+
+def test_update_disallowed_field(test_database):
+    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026"))
+
+    with pytest.raises(ValueError):
+        database.update_transaction("date", 200, 1)

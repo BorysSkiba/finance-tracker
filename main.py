@@ -45,7 +45,10 @@ def edit_transaction():
                 else:
                     print("Invalid input. Please enter a valid choice.")
 
-            database.update_transaction(edited_field, edited_value, tid)
+            try:
+                database.update_transaction(edited_field, edited_value, tid)
+            except ValueError as error:
+                print(error)
 
             print("Successfully edited: " + tid)
             break
