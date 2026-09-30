@@ -122,6 +122,16 @@ def delete_transaction():
             print("Transaction not found.")
 
 
+def show_transactions_by_type():
+    transaction_type = get_transaction_type()
+    rows = database.get_transactions_by_type(transaction_type)
+
+    if not rows:
+        print(f"No {transaction_type} transactions found.")
+    else:
+        display_transactions(rows)
+
+
 def show_transactions():
     rows = database.get_all_transactions()
 
@@ -129,21 +139,18 @@ def show_transactions():
         print("No transactions found.")
         return
 
-    total_balance = 0
-    total_income = 0
-    total_expense = 0
+    total_income = database.get_total_amounts("Income")
+    total_expense = database.get_total_amounts("Expense")
+    total_balance = total_income - total_expense
 
-    for row in rows:
-        print(f"{row[0]}: Name: {row[1]}, {row[3]}, {row[2]:.2f} PLN, {row[4][:17]}")
-
-        if  row[3] == "Income":
-            total_balance += row[2]
-            total_income += row[2]
-        elif row[3] == "Expense":
-            total_balance -= row[2]
-            total_expense += row[2]
+    display_transactions(rows)
 
     print(f"\nTotal income: {total_income:.2f} PLN\nTotal expense: {total_expense:.2f} PLN\nTotal balance: {total_balance:.2f} PLN")
+
+
+def display_transactions(rows):
+    for row in rows:
+        print(f"{row[0]}: Name: {row[1]}, {row[3]}, {row[2]:.2f} PLN, {row[4][:17]}")
 
 
 def main():
@@ -152,16 +159,16 @@ def main():
     print("Welcome to the Financial Analysis Tool.")
 
     while True:
-        print("1. Add transaction.\n2. Show transactions.\n3. Edit transaction.\n4. Delete transaction\n5. Exit.")
+        print("1. Add transaction.\n2. Show transactions.\n3. Show transactions by type.\n4. Edit transaction.\n5. Delete transaction\n6. Exit.")
 
         while True:
             try:
                 choice = int(input("Enter your choice: "))
 
-                if choice in [1, 2, 3, 4, 5]:
+                if choice in [1, 2, 3, 4, 5, 6]:
                     break
                 else:
-                    print("Invalid input. Choose 1, 2, 3, 4 or 5.")
+                    print("Invalid input. Choose 1, 2, 3, 4, 5 or 6.")
 
             except ValueError:
                 print("Invalid input. Please enter a number.")
@@ -171,10 +178,12 @@ def main():
         elif choice == 2:
             show_transactions()
         elif choice == 3:
-            edit_transaction()
+            show_transactions_by_type()
         elif choice == 4:
-            delete_transaction()
+            edit_transaction()
         elif choice == 5:
+            delete_transaction()
+        elif choice == 6:
             print("Thank you for using this tool.")
             break
 

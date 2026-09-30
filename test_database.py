@@ -49,3 +49,51 @@ def test_update_disallowed_field(test_database):
 
     with pytest.raises(ValueError):
         database.update_transaction("date", 200, 1)
+
+
+def test_get_total_amounts(test_database):
+    database.insert_transaction(("Test transaction", 1000, "Income", "28/09/2026"))
+    database.insert_transaction(("Test transaction 2", 500, "Income", "28/09/2026"))
+    database.insert_transaction(("Test transaction 3", 200, "Expense", "28/09/2026"))
+    database.insert_transaction(("Test transaction 4", 150, "Expense", "28/09/2026"))
+
+    income = database.get_total_amounts("Income")
+    expense = database.get_total_amounts("Expense")
+
+    assert income == 1500
+    assert expense == 350
+
+
+def test_get_invalid_type_total_amounts(test_database):
+    with pytest.raises(ValueError):
+        database.get_total_amounts("outcome")
+
+
+def test_get_total_amounts_with_no_transactions(test_database):
+    income = database.get_total_amounts("Income")
+
+    assert income == 0
+
+
+def test_get_transactions_by_type(test_database):
+    database.insert_transaction(("Test transaction", 1000, "Income", "28/09/2026"))
+    database.insert_transaction(("Test transaction 2", 500, "Income", "28/09/2026"))
+    database.insert_transaction(("Test transaction 3", 200, "Expense", "28/09/2026"))
+    database.insert_transaction(("Test transaction 4", 150, "Expense", "28/09/2026"))
+
+    income_rows = database.get_transactions_by_type("Income")
+    expense_rows = database.get_transactions_by_type("Expense")
+
+    assert income_rows == [(1, "Test transaction", 1000.0, "Income", "28/09/2026"), (2, "Test transaction 2", 500.0, "Income", "28/09/2026")]
+    assert expense_rows == [(3, "Test transaction 3", 200.0, "Expense", "28/09/2026"), (4, "Test transaction 4", 150.0, "Expense", "28/09/2026")]
+
+
+def test_get_transactions_by_type_invalid_type(test_database):
+    with pytest.raises(ValueError):
+        database.get_transactions_by_type("outcome")
+
+
+def test_get_transactions_by_type_no_transactions(test_database):
+    income_rows = database.get_transactions_by_type("Income")
+
+    assert income_rows == []

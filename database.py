@@ -59,3 +59,32 @@ def get_all_transactions():
     connection.close()
 
     return rows
+
+
+def get_total_amounts(atype):
+    validate_transaction_type(atype)
+
+    connection = sqlite3.connect(DATABASE_FILE)
+    cursor = connection.cursor()
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = ?", (atype,))
+    total_amount = cursor.fetchone()
+    connection.close()
+
+    return total_amount[0]
+
+
+def get_transactions_by_type(atype):
+    validate_transaction_type(atype)
+
+    connection = sqlite3.connect(DATABASE_FILE)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM transactions WHERE type = ?", (atype,))
+    rows = cursor.fetchall()
+    connection.close()
+
+    return rows
+
+
+def validate_transaction_type(atype):
+    if atype not in ["Income", "Expense"]:
+        raise ValueError("Invalid transaction type.")
