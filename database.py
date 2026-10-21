@@ -6,7 +6,12 @@ DATABASE_FILE = "transactions.db"
 def initialize_database():
     connection = sqlite3.connect(DATABASE_FILE)
     cursor = connection.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL, type TEXT, date TEXT)""")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL, type TEXT, date TEXT, category TEXT NOT NULL DEFAULT 'Other')""")
+    cursor.execute("PRAGMA table_info(transactions)")
+    columns = cursor.fetchall()
+    column_names = [column[1] for column in columns]
+    if "category" not in column_names:
+        cursor.execute("""ALTER TABLE transactions ADD COLUMN category TEXT NOT NULL DEFAULT 'Other'""")
     connection.commit()
     connection.close()
 
@@ -14,7 +19,7 @@ def initialize_database():
 def insert_transaction(data):
     connection = sqlite3.connect(DATABASE_FILE)
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO transactions (name, amount, type, date) VALUES (?, ?, ?, ?)", data)
+    cursor.execute("INSERT INTO transactions (name, amount, type, date, category) VALUES (?, ?, ?, ?, ?)", data)
     connection.commit()
     connection.close()
 
@@ -30,7 +35,7 @@ def get_transaction_by_id(tid):
 
 
 def update_transaction(edited_field, edited_value, tid):
-    allowed_fields = ["name", "amount", "type"]
+    allowed_fields = ["name", "amount", "type", "category"]
 
     if edited_field not in allowed_fields:
         if edited_field not in allowed_fields:
@@ -85,6 +90,48 @@ def get_transactions_by_type(atype):
     return rows
 
 
+def get_transactions_by_category(category):
+    validate_transaction_category(category)
+
+    connection = sqlite3.connect(DATABASE_FILE)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM transactions WHERE category = ?", (category,))
+    rows = cursor.fetchall()
+    connection.close()
+
+    return rows
+
+
 def validate_transaction_type(atype):
     if atype not in ["Income", "Expense"]:
         raise ValueError("Invalid transaction type.")
+
+
+def validate_transaction_category(category):
+    if category not in ["Food", "Transport", "Bills", "Entertainment", "Shopping", "Salary", "Other"]:
+        raise ValueError("Invalid transaction category.")
+
+
+def get_filtered_transactions(transaction_type=None, transaction_category=None):
+    connection = sqlite3.connect(DATABASE_FILE)
+    cursor = connection.cursor()
+    query = "SELECT * FROM transactions"
+    conditions = []
+    parameters = []
+
+    if transaction_type is not None:
+        conditions.append("type = ?")
+        parameters.append(transaction_type)
+    if transaction_category is not None:
+        conditions.append("category = ?")
+        parameters.append(transaction_category)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    cursor.execute(query, parameters)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    return rows
