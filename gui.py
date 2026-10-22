@@ -1,4 +1,7 @@
 import sys
+
+import PySide6
+
 import database
 import datetime
 
@@ -20,14 +23,15 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QDialog,
     QStyledItemDelegate,
-    QStyle
+    QStyle,
+    QDateEdit,
 )
 
 
 def retrieve_all_transactions():
     rows = database.get_all_transactions()
     display_transaction_rows(rows)
-    update_summary()
+    update_summary(rows)
 
 
 def display_transaction_rows(rows):
@@ -65,7 +69,7 @@ def add_transaction():
 
     category = category_input.currentText()
 
-    database.insert_transaction((name, amount, ttype, datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S.%f"), category))
+    database.insert_transaction((name, amount, ttype, datetime.datetime.now().isoformat(sep=" ", timespec="seconds"), category))
 
     refresh_view()
 
@@ -149,14 +153,21 @@ def edit_selected_transaction():
     dialog.exec()
 
 
-def update_summary():
-    total_income = database.get_total_amounts("Income")
-    total_expense = database.get_total_amounts("Expense")
+def update_summary(rows):
+    total_income = 0
+    total_expense = 0
+
+    for row in rows:
+        if row[3] == "Income":
+            total_income += row[2]
+        elif row[3] == "Expense":
+            total_expense += row[2]
+
     total_balance = total_income - total_expense
 
-    income_label.setText(f"Income: {total_income:.2f}")
-    expense_label.setText(f"Expense: {total_expense:.2f}")
-    balance_label.setText(f"Total Balance: {total_balance:.2f}")
+    income_label.setText(f"Income: {total_income:.2f} PLN")
+    expense_label.setText(f"Expense: {total_expense:.2f} PLN")
+    balance_label.setText(f"Total Balance: {total_balance:.2f} PLN")
 
 
 def delete_selected_transaction():
@@ -180,17 +191,28 @@ def delete_selected_transaction():
 def filter_transactions(_=None):
     filter_transaction_type = None
     filter_transaction_category = None
+    filter_transaction_start_date = None
+    filter_transaction_end_date = None
+
     if filter_input_type.currentText() != "All":
         filter_transaction_type = filter_input_type.currentText()
     if filter_input_category.currentText() != "All Categories":
         filter_transaction_category = filter_input_category.currentText()
+    if start_date_input.date() != PySide6.QtCore.QDate(2000, 1, 1):
+        filter_transaction_start_date = start_date_input.date().toString("yyyy-MM-dd") + " 00:00:00"
+    if end_date_input.date() != PySide6.QtCore.QDate(2000, 1, 1):
+        filter_transaction_end_date = end_date_input.date().toString("yyyy-MM-dd") + " 00:00:00"
 
-    display_transaction_rows(database.get_filtered_transactions(filter_transaction_type, filter_transaction_category))
+    rows = database.get_filtered_transactions(transaction_type=filter_transaction_type, transaction_category=filter_transaction_category, start_date=filter_transaction_start_date, end_date=filter_transaction_end_date)
+
+    display_transaction_rows(rows)
+
+    return rows
 
 
 def refresh_view():
-    filter_transactions()
-    update_summary()
+    rows = filter_transactions()
+    update_summary(rows)
 
 
 class NoFocusDelegate(QStyledItemDelegate):
@@ -235,15 +257,34 @@ add_button = QPushButton("Add transaction")
 add_button.clicked.connect(add_transaction)
 layout.addWidget(add_button)
 
+filter_layout = QHBoxLayout()
+layout.addLayout(filter_layout)
+
 filter_input_type = QComboBox()
 filter_input_type.addItems(["All", "Income", "Expense"])
-filter_input_type.currentTextChanged.connect(filter_transactions)
-layout.addWidget(filter_input_type)
+filter_input_type.currentTextChanged.connect(refresh_view)
+filter_layout.addWidget(filter_input_type)
 
 filter_input_category = QComboBox()
 filter_input_category.addItems(["All Categories", "Food", "Transport", "Bills", "Entertainment", "Shopping", "Salary", "Other"])
-filter_input_category.currentTextChanged.connect(filter_transactions)
-layout.addWidget(filter_input_category)
+filter_input_category.currentTextChanged.connect(refresh_view)
+filter_layout.addWidget(filter_input_category)
+
+start_date_text = QLabel("Start Date:")
+start_date_text.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+filter_layout.addWidget(start_date_text)
+start_date_input = QDateEdit()
+start_date_input.setCalendarPopup(True)
+start_date_input.dateChanged.connect(refresh_view)
+filter_layout.addWidget(start_date_input)
+
+end_date_text = QLabel("End Date:")
+end_date_text.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+filter_layout.addWidget(end_date_text)
+end_date_input = QDateEdit()
+end_date_input.setCalendarPopup(True)
+end_date_input.dateChanged.connect(refresh_view)
+filter_layout.addWidget(end_date_input)
 
 transaction_table = QTableWidget()
 transaction_table.setColumnCount(6)

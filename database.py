@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 DATABASE_FILE = "transactions.db"
 
@@ -112,13 +113,19 @@ def validate_transaction_category(category):
         raise ValueError("Invalid transaction category.")
 
 
-def get_filtered_transactions(transaction_type=None, transaction_category=None):
+def get_filtered_transactions(transaction_type=None, transaction_category=None, start_date=None, end_date=None):
     connection = sqlite3.connect(DATABASE_FILE)
     cursor = connection.cursor()
     query = "SELECT * FROM transactions"
     conditions = []
     parameters = []
 
+    if start_date is not None:
+        conditions.append("date >= ?")
+        parameters.append(start_date)
+    if end_date is not None:
+        conditions.append("date <= ?")
+        parameters.append(end_date)
     if transaction_type is not None:
         conditions.append("type = ?")
         parameters.append(transaction_type)

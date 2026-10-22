@@ -15,7 +15,7 @@ def test_initialize_database(test_database):
 
 
 def test_insert_transaction(test_database):
-    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026", "Salary"))
+    database.insert_transaction(("Test transaction", 100, "Income", "2026-09-28 12:00:00", "Salary"))
 
     rows = database.get_all_transactions()
 
@@ -23,12 +23,12 @@ def test_insert_transaction(test_database):
     assert rows[0][1] == "Test transaction"
     assert rows[0][2] == 100
     assert rows[0][3] == "Income"
-    assert rows[0][4] == "28/09/2026"
+    assert rows[0][4] == "2026-09-28 12:00:00"
     assert rows[0][5] == "Salary"
 
 
 def test_update_transaction(test_database):
-    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026", "Salary"))
+    database.insert_transaction(("Test transaction", 100, "Income", "2026-09-28 12:00:00", "Salary"))
 
     database.update_transaction("amount", 200, 1)
 
@@ -38,7 +38,7 @@ def test_update_transaction(test_database):
 
 
 def test_delete_transaction_from_db(test_database):
-    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026", "Salary"))
+    database.insert_transaction(("Test transaction", 100, "Income", "2026-09-28 12:00:00", "Salary"))
 
     database.delete_transaction_from_db(1)
 
@@ -46,17 +46,17 @@ def test_delete_transaction_from_db(test_database):
 
 
 def test_update_disallowed_field(test_database):
-    database.insert_transaction(("Test transaction", 100, "Income", "28/09/2026", "Salary"))
+    database.insert_transaction(("Test transaction", 100, "Income", "2026-09-28 12:00:00", "Salary"))
 
     with pytest.raises(ValueError):
         database.update_transaction("date", 200, 1)
 
 
 def test_get_total_amounts(test_database):
-    database.insert_transaction(("Test transaction", 1000, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 2", 500, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 3", 200, "Expense", "28/09/2026", "Food"))
-    database.insert_transaction(("Test transaction 4", 150, "Expense", "28/09/2026", "Food"))
+    database.insert_transaction(("Test transaction", 1000, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 2", 500, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 3", 200, "Expense", "2026-09-28 12:00:00", "Food"))
+    database.insert_transaction(("Test transaction 4", 150, "Expense", "2026-09-28 12:00:00", "Food"))
 
     income = database.get_total_amounts("Income")
     expense = database.get_total_amounts("Expense")
@@ -77,16 +77,16 @@ def test_get_total_amounts_with_no_transactions(test_database):
 
 
 def test_get_transactions_by_type(test_database):
-    database.insert_transaction(("Test transaction", 1000, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 2", 500, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 3", 200, "Expense", "28/09/2026", "Food"))
-    database.insert_transaction(("Test transaction 4", 150, "Expense", "28/09/2026", "Food"))
+    database.insert_transaction(("Test transaction", 1000, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 2", 500, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 3", 200, "Expense", "2026-09-28 12:00:00", "Food"))
+    database.insert_transaction(("Test transaction 4", 150, "Expense", "2026-09-28 12:00:00", "Food"))
 
     income_rows = database.get_transactions_by_type("Income")
     expense_rows = database.get_transactions_by_type("Expense")
 
-    assert income_rows == [(1, "Test transaction", 1000.0, "Income", "28/09/2026", "Salary"), (2, "Test transaction 2", 500.0, "Income", "28/09/2026", "Salary")]
-    assert expense_rows == [(3, "Test transaction 3", 200.0, "Expense", "28/09/2026", "Food"), (4, "Test transaction 4", 150.0, "Expense", "28/09/2026", "Food")]
+    assert income_rows == [(1, "Test transaction", 1000.0, "Income", "2026-09-28 12:00:00", "Salary"), (2, "Test transaction 2", 500.0, "Income", "2026-09-28 12:00:00", "Salary")]
+    assert expense_rows == [(3, "Test transaction 3", 200.0, "Expense", "2026-09-28 12:00:00", "Food"), (4, "Test transaction 4", 150.0, "Expense", "2026-09-28 12:00:00", "Food")]
 
 
 def test_get_transactions_by_type_invalid_type(test_database):
@@ -101,18 +101,18 @@ def test_get_transactions_by_type_no_transactions(test_database):
 
 
 def test_get_transactions_by_category(test_database):
-    database.insert_transaction(("Test transaction", 1000, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 2", 500, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 3", 200, "Expense", "28/09/2026", "Food"))
-    database.insert_transaction(("Test transaction 4", 150, "Expense", "28/09/2026", "Food"))
+    database.insert_transaction(("Test transaction", 1000, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 2", 500, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 3", 200, "Expense", "2026-09-28 12:00:00", "Food"))
+    database.insert_transaction(("Test transaction 4", 150, "Expense", "2026-09-28 12:00:00", "Food"))
 
     salary_rows = database.get_transactions_by_category("Salary")
     food_rows = database.get_transactions_by_category("Food")
 
-    assert salary_rows == [(1, "Test transaction", 1000.0, "Income", "28/09/2026", "Salary"),
-                           (2, "Test transaction 2", 500.0, "Income", "28/09/2026", "Salary")]
-    assert food_rows == [(3, "Test transaction 3", 200.0, "Expense", "28/09/2026", "Food"),
-                            (4, "Test transaction 4", 150.0, "Expense", "28/09/2026", "Food")]
+    assert salary_rows == [(1, "Test transaction", 1000.0, "Income", "2026-09-28 12:00:00", "Salary"),
+                           (2, "Test transaction 2", 500.0, "Income", "2026-09-28 12:00:00", "Salary")]
+    assert food_rows == [(3, "Test transaction 3", 200.0, "Expense", "2026-09-28 12:00:00", "Food"),
+                            (4, "Test transaction 4", 150.0, "Expense", "2026-09-28 12:00:00", "Food")]
 
 
 def test_get_transactions_by_category_invalid_category(test_database):
@@ -127,12 +127,16 @@ def test_get_transactions_by_category_no_transactions(test_database):
 
 
 def test_get_filtered_transactions(test_database):
-    database.insert_transaction(("Test transaction", 1000, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 2", 500, "Income", "28/09/2026", "Salary"))
-    database.insert_transaction(("Test transaction 3", 200, "Expense", "28/09/2026", "Food"))
-    database.insert_transaction(("Test transaction 4", 150, "Expense", "28/09/2026", "Bills"))
+    database.insert_transaction(("Test transaction", 1000, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 2", 500, "Income", "2026-09-28 12:00:00", "Salary"))
+    database.insert_transaction(("Test transaction 3", 200, "Expense", "2026-09-29 12:00:00", "Food"))
+    database.insert_transaction(("Test transaction 4", 150, "Expense", "2026-09-30 12:00:00", "Bills"))
 
-    assert database.get_filtered_transactions(transaction_type="Income") == [(1, "Test transaction", 1000.0, "Income", "28/09/2026", "Salary"), (2, "Test transaction 2", 500.0, "Income", "28/09/2026", "Salary")]
-    assert database.get_filtered_transactions(transaction_category="Food") == [(3, "Test transaction 3", 200.0, "Expense", "28/09/2026", "Food")]
-    assert database.get_filtered_transactions(transaction_type="Expense", transaction_category="Bills") == [(4, "Test transaction 4", 150.0, "Expense", "28/09/2026", "Bills")]
-    assert database.get_filtered_transactions() == [(1, "Test transaction", 1000.0, "Income", "28/09/2026", "Salary"), (2, "Test transaction 2", 500.0, "Income", "28/09/2026", "Salary"), (3, "Test transaction 3", 200.0, "Expense", "28/09/2026", "Food"), (4, "Test transaction 4", 150.0, "Expense", "28/09/2026", "Bills")]
+    assert database.get_filtered_transactions(transaction_type="Income") == [(1, "Test transaction", 1000.0, "Income", "2026-09-28 12:00:00", "Salary"), (2, "Test transaction 2", 500.0, "Income", "2026-09-28 12:00:00", "Salary")]
+    assert database.get_filtered_transactions(transaction_category="Food") == [(3, "Test transaction 3", 200.0, "Expense", "2026-09-29 12:00:00", "Food")]
+    assert database.get_filtered_transactions(transaction_type="Expense", transaction_category="Bills") == [(4, "Test transaction 4", 150.0, "Expense", "2026-09-30 12:00:00", "Bills")]
+    assert database.get_filtered_transactions() == [(1, "Test transaction", 1000.0, "Income", "2026-09-28 12:00:00", "Salary"), (2, "Test transaction 2", 500.0, "Income", "2026-09-28 12:00:00", "Salary"), (3, "Test transaction 3", 200.0, "Expense", "2026-09-29 12:00:00", "Food"), (4, "Test transaction 4", 150.0, "Expense", "2026-09-30 12:00:00", "Bills")]
+    assert database.get_filtered_transactions(start_date="2026-09-29 12:00:00") == [(3, "Test transaction 3", 200.0, "Expense", "2026-09-29 12:00:00", "Food"), (4, "Test transaction 4", 150.0, "Expense", "2026-09-30 12:00:00", "Bills")]
+    assert database.get_filtered_transactions(end_date="2026-09-29 12:00:00") == [(1, "Test transaction", 1000.0, "Income", "2026-09-28 12:00:00", "Salary"), (2, "Test transaction 2", 500.0, "Income", "2026-09-28 12:00:00", "Salary"), (3, "Test transaction 3", 200.0, "Expense", "2026-09-29 12:00:00", "Food")]
+    assert database.get_filtered_transactions(start_date="2026-09-29 12:00:00", end_date="2026-09-30 12:00:00") == [(3, "Test transaction 3", 200.0, "Expense", "2026-09-29 12:00:00", "Food"), (4, "Test transaction 4", 150.0, "Expense", "2026-09-30 12:00:00", "Bills")]
+    assert database.get_filtered_transactions(start_date="2026-09-29", transaction_category="Bills") == [(4, "Test transaction 4", 150.0, "Expense", "2026-09-30 12:00:00", "Bills")]
