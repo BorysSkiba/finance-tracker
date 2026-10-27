@@ -1,7 +1,8 @@
 import sqlite3
-import datetime
 
 DATABASE_FILE = "transactions.db"
+TYPES = ["Income", "Expense"]
+CATEGORIES = ["Food", "Transport", "Bills", "Entertainment", "Shopping", "Salary", "Other"]
 
 
 def initialize_database():
@@ -39,8 +40,7 @@ def update_transaction(edited_field, edited_value, tid):
     allowed_fields = ["name", "amount", "type", "category"]
 
     if edited_field not in allowed_fields:
-        if edited_field not in allowed_fields:
-            raise ValueError("You are not allowed to edit this field")
+        raise ValueError("You are not allowed to edit this field")
 
     connection = sqlite3.connect(DATABASE_FILE)
     cursor = connection.cursor()
@@ -104,12 +104,12 @@ def get_transactions_by_category(category):
 
 
 def validate_transaction_type(atype):
-    if atype not in ["Income", "Expense"]:
+    if atype not in TYPES:
         raise ValueError("Invalid transaction type.")
 
 
 def validate_transaction_category(category):
-    if category not in ["Food", "Transport", "Bills", "Entertainment", "Shopping", "Salary", "Other"]:
+    if category not in CATEGORIES:
         raise ValueError("Invalid transaction category.")
 
 
